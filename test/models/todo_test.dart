@@ -39,7 +39,7 @@ void main() {
       final todo = createSample();
       final json = todo.toJson();
 
-      expect(json['id'], 'test-id-1');
+      expect(json['id'], 'test-id-11');
       expect(json['title'], 'Buy groceries');
       expect(json['description'], 'Milk, eggs, bread');
       expect(json['isCompleted'], false);
