@@ -1,0 +1,45 @@
+name: Build Android (signed)
+
+on:
+  push:
+    branches: [develop]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Restore keystore
+        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > $RUNNER_TEMP/release.jks
+
+      - name: Create key.properties
+        run: |
+          cat > android/key.properties <<EOF
+          storePassword=${{ secrets.KEYSTORE_PASSWORD }}
+          keyPassword=${{ secrets.KEY_PASSWORD }}
+          keyAlias=${{ secrets.KEY_ALIAS }}
+          storeFile=$RUNNER_TEMP/release.jks
+          EOF
+
+      - run: flutter pub get
+
+      - name: Build signed AAB (prod)
+        run: flutter build appbundle --flavor prod -t lib/main_prod.dart
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: prod-release-aab
+          path: build/app/outputs/bundle/prodRelease/app-prod-release.aab
