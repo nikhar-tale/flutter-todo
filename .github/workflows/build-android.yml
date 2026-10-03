@@ -1,8 +1,6 @@
 name: Build Android (signed)
 
 on:
-  push:
-    branches: [develop]
   workflow_dispatch:
 
 jobs:
