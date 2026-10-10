@@ -43,7 +43,16 @@ jobs:
       - run: flutter pub get
 
       - name: Build signed AAB
-        run: flutter build appbundle --flavor prod -t lib/main_prod.dart --build-number=$((${{ github.run_number }} + 100))
+        run: |
+          if [[ "$GITHUB_REF_TYPE" == "tag" ]]; then
+            VERSION="${GITHUB_REF_NAME#v}"
+          else
+            VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //; s/+.*//' | tr -d '[:space:]')
+          fi
+          echo "Building version $VERSION"
+          flutter build appbundle --flavor prod -t lib/main_prod.dart \
+            --build-name="$VERSION" \
+            --build-number=$((${{ github.run_number }} + 100))
 
       - name: Upload to Play internal track
         working-directory: android
